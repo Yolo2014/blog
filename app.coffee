@@ -1,9 +1,14 @@
 express = require 'express'
 path = require 'path'
-favicon = require 'static-favicon'
+session = require 'express-session'
+mongoStore = require('connect-mongo')(session)
+
+config = require './config'
+
 logger = require 'morgan'
 cookieParser = require 'cookie-parser'
 bodyParser = require 'body-parser'
+
 
 routes = require './routes'
 
@@ -13,11 +18,18 @@ app = express()
 app.set 'views', path.join __dirname, 'views'
 app.set 'view engine', 'jade'
 
-app.use favicon()
 app.use logger 'dev'
 app.use bodyParser.json()
 app.use bodyParser.urlencoded()
 app.use cookieParser()
+app.use session
+  secret: config.cookieSecret
+  key: config.db
+  cookie:
+    maxAge: 1000 * 60 * 60 * 24* 30
+  store: new mongoStore
+    db: config.db
+
 app.use express.static path.join __dirname, 'public'
 
 # app.use '/', routes
